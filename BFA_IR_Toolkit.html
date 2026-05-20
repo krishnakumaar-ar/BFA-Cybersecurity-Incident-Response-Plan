@@ -1,0 +1,624 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>BFA Financial Advisory — IR Toolkit</title>
+<style>
+* { box-sizing: border-box; margin: 0; padding: 0; }
+body { font-family: Arial, sans-serif; background: #f4f6f9; color: #1F1F1F; font-size: 14px; }
+
+/* ── TOP BAR ── */
+.top-bar { background: #1F3864; color: white; padding: 18px 32px; }
+.top-bar h1 { font-size: 20px; font-weight: 700; letter-spacing: .01em; }
+.top-bar p  { font-size: 13px; opacity: .7; margin-top: 5px; }
+
+/* ── MAIN NAV TABS ── */
+.nav-bar { background: white; border-bottom: 2px solid #e0e4ea;
+           display: flex; gap: 0; padding: 0 32px; }
+.nav-btn { padding: 14px 22px; border: none; background: transparent;
+           font-size: 13px; font-weight: 600; cursor: pointer; color: #666;
+           border-bottom: 3px solid transparent; margin-bottom: -2px;
+           transition: all .15s; white-space: nowrap; font-family: Arial, sans-serif; }
+.nav-btn:hover { color: #1F3864; }
+.nav-btn.active { color: #1F3864; border-bottom-color: #1F3864; }
+
+/* ── CONTAINER ── */
+.container { max-width: 1100px; margin: 0 auto; padding: 28px 24px; }
+.tab-panel { display: none; }
+.tab-panel.active { display: block; }
+
+/* ── SECTION TITLE ── */
+.section-title { font-size: 17px; font-weight: 700; color: #1F3864;
+                 margin-bottom: 6px; }
+.section-sub   { font-size: 13px; color: #666; margin-bottom: 22px; line-height: 1.5; }
+
+/* ══════════════════════════════════════
+   DECISION TREES
+══════════════════════════════════════ */
+.scenario-row { display: flex; flex-wrap: wrap; gap: 8px; margin-bottom: 22px; }
+.sc-btn { padding: 7px 16px; border-radius: 6px; border: 1.5px solid #d0d5de;
+          background: white; font-size: 13px; cursor: pointer; font-weight: 500;
+          color: #444; transition: all .15s; font-family: Arial, sans-serif; }
+.sc-btn:hover { border-color: #2E75B6; color: #2E75B6; background: #f0f5fb; }
+.sc-btn.active { background: #1F3864; border-color: #1F3864; color: white; }
+
+/* Breadcrumb trail */
+.breadcrumb { display: flex; flex-wrap: wrap; align-items: center; gap: 5px;
+              min-height: 28px; margin-bottom: 16px; background: #f8f9fb;
+              border-radius: 8px; padding: 8px 12px; }
+.bc-q { font-size: 11px; color: #888; background: white; border: 1px solid #e0e4ea;
+        border-radius: 4px; padding: 3px 8px; }
+.bc-yes { font-size: 11px; font-weight: 700; color: white; background: #1D9E75;
+          border-radius: 4px; padding: 3px 8px; }
+.bc-no  { font-size: 11px; font-weight: 700; color: white; background: #888;
+          border-radius: 4px; padding: 3px 8px; }
+.bc-arr { color: #ccc; font-size: 12px; }
+
+/* Question card */
+.q-card { background: white; border: 1px solid #dde2ea; border-radius: 10px;
+          padding: 24px 24px 20px; margin-bottom: 14px;
+          border-left: 5px solid #2E75B6; box-shadow: 0 1px 4px rgba(0,0,0,.06); }
+.q-step { font-size: 11px; font-weight: 700; color: #2E75B6; text-transform: uppercase;
+          letter-spacing: .06em; margin-bottom: 10px; }
+.q-text { font-size: 15px; font-weight: 600; line-height: 1.6; color: #1F1F1F;
+          margin-bottom: 20px; }
+.q-btns { display: flex; gap: 12px; }
+.btn-yes { padding: 10px 32px; background: #1F3864; border: none; color: white;
+           border-radius: 7px; font-size: 13px; font-weight: 600; cursor: pointer;
+           transition: background .15s; font-family: Arial, sans-serif; }
+.btn-yes:hover { background: #2E75B6; }
+.btn-no  { padding: 10px 32px; background: white; border: 1.5px solid #ccc;
+           color: #555; border-radius: 7px; font-size: 13px; font-weight: 600;
+           cursor: pointer; transition: all .15s; font-family: Arial, sans-serif; }
+.btn-no:hover  { border-color: #888; color: #222; }
+
+/* Result cards */
+.result-card { border-radius: 10px; padding: 20px 22px; margin-bottom: 14px; }
+.r-p1 { background: #FDECEA; border-left: 6px solid #C00000; }
+.r-p2 { background: #FFF3E0; border-left: 6px solid #C55A11; }
+.r-p3 { background: #EBF5EB; border-left: 6px solid #375623; }
+.r-p4 { background: #EEF2F7; border-left: 6px solid #44546A; }
+.r-priority { font-size: 16px; font-weight: 700; margin-bottom: 4px; }
+.r-p1 .r-priority { color: #C00000; }
+.r-p2 .r-priority { color: #C55A11; }
+.r-p3 .r-priority { color: #375623; }
+.r-p4 .r-priority { color: #44546A; }
+.r-detail { font-size: 13px; margin-bottom: 14px; color: #444; font-style: italic; }
+.r-actions { list-style: none; }
+.r-actions li { font-size: 13px; padding: 6px 0; border-bottom: 1px solid rgba(0,0,0,.06);
+                line-height: 1.55; color: #222; display: flex; gap: 8px; }
+.r-actions li:last-child { border-bottom: none; }
+.r-actions li::before { content: "→"; font-weight: 700; opacity: .5; flex-shrink: 0; margin-top: 1px; }
+.btn-reset { margin-top: 14px; padding: 8px 20px; background: white;
+             border: 1.5px solid #ccc; color: #555; border-radius: 7px;
+             font-size: 12px; cursor: pointer; font-family: Arial, sans-serif; }
+.btn-reset:hover { border-color: #1F3864; color: #1F3864; }
+
+/* ══════════════════════════════════════
+   FILE THRESHOLDS
+══════════════════════════════════════ */
+.thr-section { margin-bottom: 32px; }
+.thr-label { font-size: 12px; font-weight: 700; text-transform: uppercase;
+             letter-spacing: .05em; color: #2E75B6; margin-bottom: 10px;
+             padding-bottom: 6px; border-bottom: 2px solid #2E75B6; }
+.tbl-wrap { overflow-x: auto; }
+table.thr { width: 100%; border-collapse: collapse; font-size: 13px; }
+.thr thead tr { background: #1F3864; }
+.thr th { text-align: left; padding: 10px 12px; color: white; font-size: 12px;
+          font-weight: 600; white-space: nowrap; }
+.thr tbody tr:nth-child(even) { background: #f7f9fc; }
+.thr tbody tr:hover { background: #eef3fb; }
+.thr td { padding: 10px 12px; border-bottom: 1px solid #e8ecf0; vertical-align: top;
+          line-height: 1.5; }
+.thr td:first-child { font-weight: 600; color: #1F3864; }
+.sys { display: block; font-size: 11px; color: #888; font-family: monospace;
+       font-weight: 400; margin-top: 2px; }
+.badge { display: inline-block; font-size: 11px; padding: 2px 8px; border-radius: 4px;
+         font-weight: 600; white-space: nowrap; }
+.b-ok  { background: #EBF5EB; color: #375623; }
+.b-warn{ background: #FFF3E0; color: #C55A11; }
+.b-blk { background: #FDECEA; color: #C00000; }
+.note  { font-size: 12px; color: #555; }
+
+/* File type grid */
+.ft-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 12px; }
+@media(max-width:700px){ .ft-grid { grid-template-columns: 1fr 1fr; } }
+@media(max-width:480px){ .ft-grid { grid-template-columns: 1fr; } }
+.ft-card { background: white; border: 1px solid #e0e4ea; border-radius: 8px;
+           padding: 14px; border-top: 4px solid #ccc; }
+.ft-card.c-red  { border-top-color: #C00000; }
+.ft-card.c-amb  { border-top-color: #C55A11; }
+.ft-card.c-grn  { border-top-color: #375623; }
+.ft-card.c-blu  { border-top-color: #2E75B6; }
+.ft-card-title { font-size: 12px; font-weight: 700; margin-bottom: 10px; color: #333; }
+.ft-card.c-red  .ft-card-title { color: #C00000; }
+.ft-card.c-amb  .ft-card-title { color: #C55A11; }
+.ft-card.c-grn  .ft-card-title { color: #375623; }
+.ft-card.c-blu  .ft-card-title { color: #2E75B6; }
+.ft-tags { display: flex; flex-wrap: wrap; gap: 5px; }
+.ft-tag { font-size: 11px; padding: 2px 7px; background: #f4f6f9;
+          border: 1px solid #dde2ea; border-radius: 4px;
+          font-family: monospace; color: #444; }
+
+/* ══════════════════════════════════════
+   REPORTING CHAIN
+══════════════════════════════════════ */
+.chain-wrap { display: flex; flex-direction: column; align-items: center; gap: 0;
+              max-width: 600px; margin: 0 auto 32px; }
+.chain-node { width: 100%; background: white; border: 1.5px solid #d0d5de;
+              border-radius: 10px; padding: 14px 18px; }
+.chain-node.primary { border-color: #2E75B6; border-left: 5px solid #2E75B6; }
+.chain-node.danger  { border-color: #C00000; border-left: 5px solid #C00000; }
+.cn-name { font-size: 14px; font-weight: 700; color: #1F3864; margin-bottom: 3px; }
+.cn-role { font-size: 12px; color: #555; margin-bottom: 6px; line-height: 1.5; }
+.cn-tags { display: flex; flex-wrap: wrap; gap: 5px; margin-top: 4px; }
+.sev-tag { font-size: 11px; padding: 2px 8px; border-radius: 10px; font-weight: 600; }
+.s1 { background: #FDECEA; color: #C00000; }
+.s2 { background: #FFF3E0; color: #C55A11; }
+.s3 { background: #EBF5EB; color: #375623; }
+.s4 { background: #EEF2F7; color: #44546A; }
+
+.chain-arrow { width: 2px; height: 24px; background: #ccd2db; margin: 0 auto; }
+.chain-label { font-size: 11px; color: #888; text-align: center; padding: 3px 0;
+               font-style: italic; }
+.chain-split { display: flex; gap: 12px; width: 100%; }
+.chain-split .chain-node { flex: 1; }
+
+.ext-contacts { background: #f8f9fb; border: 1px solid #e0e4ea; border-radius: 8px;
+                padding: 14px 18px; width: 100%; margin-top: 8px; }
+.ext-contacts strong { font-size: 13px; color: #1F3864; display: block; margin-bottom: 6px; }
+.ext-contacts p { font-size: 12px; color: #555; line-height: 1.7; }
+
+/* Severity routing table */
+.sev-table-wrap { max-width: 700px; margin: 0 auto; }
+table.sev-tbl { width: 100%; border-collapse: collapse; font-size: 13px; }
+.sev-tbl thead tr { background: #1F3864; }
+.sev-tbl th { padding: 10px 12px; color: white; font-size: 12px; font-weight: 600;
+              text-align: left; white-space: nowrap; }
+.sev-tbl td { padding: 10px 12px; border-bottom: 1px solid #e8ecf0;
+              vertical-align: top; line-height: 1.5; font-size: 12px; }
+.sev-tbl tbody tr:nth-child(even) { background: #f7f9fc; }
+</style>
+</head>
+<body>
+
+<!-- ── HEADER ── -->
+<div class="top-bar">
+  <h1>BFA Financial Advisory — Cybersecurity IR Toolkit</h1>
+  <p>Decision Trees &nbsp;·&nbsp; File Thresholds &nbsp;·&nbsp; Reporting Chain &nbsp;·&nbsp; 120 Staff &nbsp;·&nbsp; 10,000 Clients &nbsp;·&nbsp; IIS 10 &nbsp;·&nbsp; Squid 6.14 &nbsp;·&nbsp; SQL Server 2016 &nbsp;·&nbsp; Office 365 &nbsp;·&nbsp; Xero &nbsp;·&nbsp; Chronos</p>
+</div>
+
+<!-- ── NAVIGATION ── -->
+<div class="nav-bar">
+  <button class="nav-btn active" onclick="showTab('dt', this)">🌳 Decision Trees</button>
+  <button class="nav-btn" onclick="showTab('ft', this)">📁 File Thresholds</button>
+  <button class="nav-btn" onclick="showTab('rc', this)">📋 Reporting Chain</button>
+</div>
+
+<div class="container">
+
+<!-- ══════════ TAB 1: DECISION TREES ══════════ -->
+<div id="dt" class="tab-panel active">
+  <div class="section-title">Incident Triage Decision Trees</div>
+  <div class="section-sub">Select an incident type and answer Yes or No at each step. The tree will determine the priority level and give you the immediate action steps for BFA's environment.</div>
+  <div class="scenario-row" id="scRow"></div>
+  <div class="breadcrumb" id="breadcrumb"></div>
+  <div id="treeContent"></div>
+</div>
+
+<!-- ══════════ TAB 2: FILE THRESHOLDS ══════════ -->
+<div id="ft" class="tab-panel">
+  <div class="section-title">File Size Thresholds &amp; Suspicious File Types</div>
+  <div class="section-sub">Quantitative trigger values for Symantec EDLP and Squid 6.14 proxy enforcement. Each channel uses a three-band model: Normal (no action), Alert (Helpdesk notified), Block (transfer stopped and incident raised).</div>
+
+  <div class="thr-section">
+    <div class="thr-label">Transfer Thresholds by Channel</div>
+    <div class="tbl-wrap">
+      <table class="thr">
+        <thead><tr>
+          <th>Channel</th>
+          <th>Normal — No Action</th>
+          <th>Alert — Helpdesk Notified</th>
+          <th>Block — Transfer Stopped</th>
+          <th>BFA-Specific Note</th>
+        </tr></thead>
+        <tbody>
+          <tr>
+            <td>Outbound Email<span class="sys">Office 365</span></td>
+            <td><span class="badge b-ok">&lt; 10 MB</span></td>
+            <td><span class="badge b-warn">10 – 25 MB</span></td>
+            <td><span class="badge b-blk">&gt; 25 MB</span></td>
+            <td class="note">Flag .csv, .xlsx and .sql at any size — even small exports may contain all 10,000 client records. Monitor for external forwarding rules.</td>
+          </tr>
+          <tr>
+            <td>HTTP/S Web Upload<span class="sys">Squid 6.14 Proxy</span></td>
+            <td><span class="badge b-ok">&lt; 5 MB</span></td>
+            <td><span class="badge b-warn">5 – 20 MB</span></td>
+            <td><span class="badge b-blk">&gt; 50 MB</span></td>
+            <td class="note">Block all uploads to Dropbox, WeTransfer, and personal Google Drive at any file size. No legitimate business reason exists for these destinations.</td>
+          </tr>
+          <tr>
+            <td>Client Web Uploads<span class="sys">IIS 10 / Windows Server 2022</span></td>
+            <td><span class="badge b-ok">&lt; 2 MB</span></td>
+            <td><span class="badge b-warn">2 – 10 MB</span></td>
+            <td><span class="badge b-blk">&gt; 10 MB</span></td>
+            <td class="note">BFA's client portal is a budgeting tool — large uploads are operationally abnormal. Above 10 MB may indicate a web shell upload attempt to the IIS web root.</td>
+          </tr>
+          <tr>
+            <td>SQL Exports &amp; Backups<span class="sys">SQL Server / Windows Server 2016</span></td>
+            <td><span class="badge b-ok">&lt; 50 MB</span></td>
+            <td><span class="badge b-warn">50 – 200 MB</span></td>
+            <td><span class="badge b-blk">&gt; 500 MB</span></td>
+            <td class="note">Any .bak, .mdf or .sql file accessed outside business hours (8 PM–6 AM AEST) triggers an automatic alert regardless of file size. This server holds all client financial data.</td>
+          </tr>
+          <tr>
+            <td>Local Archive Creation<span class="sys">Endpoint Device</span></td>
+            <td><span class="badge b-ok">&lt; 25 MB</span></td>
+            <td><span class="badge b-warn">25 – 100 MB</span></td>
+            <td><span class="badge b-blk">&gt; 100 MB + upload</span></td>
+            <td class="note">Archive creation (.zip, .7z, .rar) followed immediately by an outbound transfer is a data staging pattern used in insider threat and ransomware double-extortion operations.</td>
+          </tr>
+          <tr>
+            <td>USB / Removable Media<span class="sys">Endpoint Device</span></td>
+            <td><span class="badge b-ok">Approved use only</span></td>
+            <td><span class="badge b-warn">Unclassified &gt; 5 MB</span></td>
+            <td><span class="badge b-blk">Any client / financial data</span></td>
+            <td class="note">Account managers have no legitimate business need for USB data transfers. Block all client PII and financial data to removable media with no exceptions.</td>
+          </tr>
+          <tr>
+            <td>OneDrive / SharePoint Sync<span class="sys">Office 365</span></td>
+            <td><span class="badge b-ok">Normal sync activity</span></td>
+            <td><span class="badge b-warn">&gt; 500 files or 100 MB in 5 min</span></td>
+            <td><span class="badge b-blk">&gt; 1 GB or after-hours bulk</span></td>
+            <td class="note">Departing account managers are the highest-risk profile. A resignation event combined with elevated bulk download activity triggers an immediate insider threat review.</td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+
+  <div class="thr-section">
+    <div class="thr-label">Suspicious File Types — Always Flag Regardless of Size</div>
+    <div class="ft-grid">
+      <div class="ft-card c-red">
+        <div class="ft-card-title">🔴 Execution &amp; Malware Delivery</div>
+        <div class="ft-tags">
+          <span class="ft-tag">.exe</span><span class="ft-tag">.bat</span>
+          <span class="ft-tag">.ps1</span><span class="ft-tag">.vbs</span>
+          <span class="ft-tag">.hta</span><span class="ft-tag">.scr</span>
+          <span class="ft-tag">.cmd</span><span class="ft-tag">.pif</span>
+          <span class="ft-tag">.js</span>
+        </div>
+      </div>
+      <div class="ft-card c-red">
+        <div class="ft-card-title">🔴 Database &amp; Financial Records</div>
+        <div class="ft-tags">
+          <span class="ft-tag">.sql</span><span class="ft-tag">.bak</span>
+          <span class="ft-tag">.mdf</span><span class="ft-tag">.ldf</span>
+          <span class="ft-tag">.db</span><span class="ft-tag">.sqlite</span>
+          <span class="ft-tag">.accdb</span><span class="ft-tag">.mdb</span>
+        </div>
+      </div>
+      <div class="ft-card c-amb">
+        <div class="ft-card-title">🟠 Staging &amp; Exfiltration Archives</div>
+        <div class="ft-tags">
+          <span class="ft-tag">.zip</span><span class="ft-tag">.7z</span>
+          <span class="ft-tag">.rar</span><span class="ft-tag">.tar</span>
+          <span class="ft-tag">.gz</span><span class="ft-tag">.iso</span>
+          <span class="ft-tag">.img</span>
+        </div>
+      </div>
+      <div class="ft-card c-amb">
+        <div class="ft-card-title">🟠 Remote Access &amp; Credentials</div>
+        <div class="ft-tags">
+          <span class="ft-tag">.rdp</span><span class="ft-tag">.pfx</span>
+          <span class="ft-tag">.p12</span><span class="ft-tag">.ppk</span>
+          <span class="ft-tag">.pem</span><span class="ft-tag">.key</span>
+          <span class="ft-tag">.vnc</span>
+        </div>
+      </div>
+      <div class="ft-card c-grn">
+        <div class="ft-card-title">🟡 Sensitive Data Exports</div>
+        <div class="ft-tags">
+          <span class="ft-tag">.csv (&gt;500 rows)</span>
+          <span class="ft-tag">.xlsx (&gt;10k cells)</span>
+          <span class="ft-tag">.json (&gt;5 MB)</span>
+          <span class="ft-tag">.xml (&gt;5 MB)</span>
+        </div>
+      </div>
+      <div class="ft-card c-blu">
+        <div class="ft-card-title">🔵 Macro &amp; Script Risk</div>
+        <div class="ft-tags">
+          <span class="ft-tag">.xlsm</span><span class="ft-tag">.docm</span>
+          <span class="ft-tag">.xlam</span><span class="ft-tag">.py</span>
+          <span class="ft-tag">.rb</span><span class="ft-tag">.pl</span>
+          <span class="ft-tag">.vba</span>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ══════════ TAB 3: REPORTING CHAIN ══════════ -->
+<div id="rc" class="tab-panel">
+  <div class="section-title">Role-Based Incident Reporting Chain</div>
+  <div class="section-sub">Mapped to BFA's exact five-person IT team. All staff report to the IT Manager. Escalation path, notification method, and timing are defined for each priority level.</div>
+
+  <div class="chain-wrap">
+
+    <div class="chain-node primary">
+      <div class="cn-name">Helpdesk Technicians (×2)</div>
+      <div class="cn-role">First point of contact for all incidents. Office desk and take-home device each. Log, triage, and escalate based on priority.</div>
+      <div class="cn-tags">
+        <span class="sev-tag s4">P4 — Own and resolve independently</span>
+        <span class="sev-tag s3">P3 — Log and notify IT Manager at next opportunity</span>
+      </div>
+    </div>
+
+    <div class="chain-arrow"></div>
+    <div class="chain-label">P1 / P2 → immediate phone call &nbsp;|&nbsp; P3 → next available</div>
+    <div class="chain-arrow"></div>
+
+    <div class="chain-node primary">
+      <div class="cn-name">IT Manager</div>
+      <div class="cn-role">Central escalation point for all P1–P3 incidents. Assigns Server Admin or Network Engineer based on incident type. Reports to BFA Executive.</div>
+      <div class="cn-tags">
+        <span class="sev-tag s1">P1 — Called immediately, any time</span>
+        <span class="sev-tag s2">P2 — Notified within 15 minutes</span>
+        <span class="sev-tag s3">P3 — Notified at next opportunity</span>
+      </div>
+    </div>
+
+    <div class="chain-arrow"></div>
+    <div class="chain-label">IT Manager assigns based on incident type</div>
+    <div class="chain-arrow"></div>
+
+    <div class="chain-split">
+      <div class="chain-node">
+        <div class="cn-name">Server Administrator</div>
+        <div class="cn-role">Lead on: IIS 10, SQL Server, Squid 6.14, Windows Server 2022/2016, Chronos</div>
+        <div class="cn-tags"><span class="sev-tag s2">Server-side, database, and web incidents</span></div>
+      </div>
+      <div class="chain-node">
+        <div class="cn-name">Network Engineer</div>
+        <div class="cn-role">Lead on: firewall rules, Squid proxy, network segmentation, VPN, DDoS response</div>
+        <div class="cn-tags"><span class="sev-tag s2">Network, DDoS, exfiltration, external attacks</span></div>
+      </div>
+    </div>
+
+    <div class="chain-arrow"></div>
+    <div class="chain-label">P1 only + any confirmed data breach</div>
+    <div class="chain-arrow"></div>
+
+    <div class="chain-node danger">
+      <div class="cn-name">BFA Executive / Managing Director</div>
+      <div class="cn-role">Notified on all P1 incidents and any confirmed breach involving client data or financial records.</div>
+      <div class="cn-tags">
+        <span class="sev-tag s1">P1 — Notify within 30 minutes</span>
+        <span class="sev-tag s1">Breach of 10,000 client records → mandatory OAIC NDB assessment</span>
+      </div>
+    </div>
+
+    <div class="chain-arrow"></div>
+    <div class="chain-label">If client data or PII is confirmed involved</div>
+    <div class="chain-arrow"></div>
+
+    <div class="chain-split">
+      <div class="chain-node danger">
+        <div class="cn-name">Legal / Privacy Officer</div>
+        <div class="cn-role">Engaged on data breach, insider threat, and regulatory notification decisions</div>
+        <div class="cn-tags"><span class="sev-tag s1">Required before any staff confrontation or external disclosure</span></div>
+      </div>
+      <div class="chain-node danger">
+        <div class="cn-name">OAIC + Affected Clients</div>
+        <div class="cn-role">Notified if mandatory breach threshold met under the Australian Privacy Act 1988</div>
+        <div class="cn-tags"><span class="sev-tag s1">72-hour target for OAIC notification</span></div>
+      </div>
+    </div>
+
+    <div class="ext-contacts">
+      <strong>External Contacts — Pre-Register Before an Incident</strong>
+      <p>Microsoft O365 Support (tenant admin) &nbsp;·&nbsp; Xero Security Team &nbsp;·&nbsp; Squid Proxy Community / Support &nbsp;·&nbsp; Chronos Vendor Support &nbsp;·&nbsp; ISP Upstream NOC (DDoS mitigation) &nbsp;·&nbsp; Cyber Insurance Broker (confirm IR retainer clause is in policy)</p>
+    </div>
+  </div>
+
+  <div class="thr-label" style="max-width:700px;margin:0 auto 12px;">Severity Routing Quick Reference</div>
+  <div class="sev-table-wrap">
+    <table class="sev-tbl">
+      <thead><tr>
+        <th>Priority</th><th>Definition for BFA</th><th>Who Responds</th><th>Notify By</th><th>Target</th>
+      </tr></thead>
+      <tbody>
+        <tr>
+          <td><span class="sev-tag s1">P1 Critical</span></td>
+          <td>Production system down · Active ransomware · Confirmed client data breach · Active exfiltration in progress</td>
+          <td>All IT staff + IT Manager + Executive</td>
+          <td>Phone call — immediate</td>
+          <td>4 hrs containment</td>
+        </tr>
+        <tr>
+          <td><span class="sev-tag s2">P2 High</span></td>
+          <td>Compromised credentials · Malware contained · Suspected insider threat · External brute force</td>
+          <td>Helpdesk + IT Manager + assigned specialist</td>
+          <td>Phone — within 15 min</td>
+          <td>24 hrs containment</td>
+        </tr>
+        <tr>
+          <td><span class="sev-tag s3">P3 Medium</span></td>
+          <td>Unconfirmed suspicious activity · Single policy violation · Squid proxy anomaly · Phishing not clicked</td>
+          <td>Helpdesk owns — IT Manager aware</td>
+          <td>Teams or email</td>
+          <td>72 hrs resolution</td>
+        </tr>
+        <tr>
+          <td><span class="sev-tag s4">P4 Low</span></td>
+          <td>Confirmed false positive · Minor policy deviation · Informational alert · Awareness report</td>
+          <td>Helpdesk owns independently</td>
+          <td>Weekly summary</td>
+          <td>5 business days</td>
+        </tr>
+      </tbody>
+    </table>
+  </div>
+</div>
+
+</div><!-- end container -->
+
+<script>
+// ── TAB SWITCHING ──
+function showTab(id, btn) {
+  document.querySelectorAll('.tab-panel').forEach(p => p.classList.remove('active'));
+  document.querySelectorAll('.nav-btn').forEach(b => b.classList.remove('active'));
+  document.getElementById(id).classList.add('active');
+  btn.classList.add('active');
+}
+
+// ── DECISION TREE DATA ──
+const SCENARIOS = ['classify','phishing','ransomware','exfil','unauth'];
+const LABELS = {
+  classify:  'Incident Classification',
+  phishing:  'Phishing / BEC',
+  ransomware:'Ransomware / Malware',
+  exfil:     'Data Exfiltration',
+  unauth:    'Unauthorised Access'
+};
+
+const TREES = {
+  classify:{
+    q:"Is a BFA production system directly affected? (IIS web server, SQL Server, Squid proxy, Office 365, Xero, or Chronos)",
+    yes:{q:"Is the incident actively occurring right now?",
+      yes:{p:"P1",cls:"r-p1",detail:"Immediate response — every minute counts.",actions:["Call IT Manager immediately — do not email or Teams","Begin isolation of the affected system right now","Open a P1 incident ticket with a precise timestamp","Notify BFA executive team within 30 minutes","Assess whether 10,000 client financial records are at risk","Engage Server Admin (server issues) or Network Engineer (network issues) in parallel"]},
+      no:{q:"Is there evidence that client data or financial records have been accessed or exfiltrated?",
+        yes:{p:"P2",cls:"r-p2",detail:"Escalate to IT Manager within 15 minutes.",actions:["Notify IT Manager by phone within 15 minutes","Preserve all system logs before any remediation begins","Identify exactly which data was accessed and by whom","Assess the mandatory OAIC NDB notification requirement","Do not remediate or patch until the full scope is confirmed","Check SQL Server and IIS access logs for the incident window"]},
+        no:{p:"P3",cls:"r-p3",detail:"Helpdesk manages with IT Manager awareness.",actions:["Log a detailed incident ticket with full timeline","Notify IT Manager at next available opportunity","Begin investigation and document all findings","Monitor for escalation indicators over the next 24 hours","Review at the next IT team meeting","Escalate immediately if scope expands"]}
+      }
+    },
+    no:{q:"Does the alert suggest client data, employee credentials, or financial records (Xero) are at risk?",
+      yes:{p:"P2",cls:"r-p2",detail:"Escalate to IT Manager within 15 minutes.",actions:["Notify IT Manager within 15 minutes","Lock down affected accounts and data access paths immediately","Review O365 and SQL Server access logs","Determine the full scope of potential exposure","Assess mandatory breach notification requirement","Escalate to P1 if active access is confirmed"]},
+      no:{p:"P4",cls:"r-p4",detail:"Helpdesk owns and resolves independently.",actions:["Log an incident ticket with full details","Investigate during normal business hours","Apply standard remediation procedures","Report to IT Manager in the next daily or weekly summary","Update knowledge base if this is a new issue type"]}
+    }
+  },
+  phishing:{
+    q:"Did the user click a link or open an attachment in the suspicious email?",
+    yes:{q:"Did the user enter credentials, financial details, or personal information into any external site?",
+      yes:{q:"Is the compromised account a privileged account? (IT staff, finance team, account manager with client access, or executive)",
+        yes:{p:"P1",cls:"r-p1",detail:"Privileged account compromise — act immediately.",actions:["Call IT Manager NOW — do not delay for any reason","Disable the account in Active Directory immediately","Revoke all active O365 sessions for that account","Audit O365 for any mail forwarding rules created in the last 24 hours","Check Xero and SQL Server audit logs for access by that account","Review Squid proxy logs for outbound data transfers from that user's device","Assess whether client financial data or PII was accessible from that account","Notify BFA executive within 30 minutes"]},
+        no:{p:"P2",cls:"r-p2",detail:"Credential compromise — escalate to IT Manager.",actions:["Reset the affected user's password immediately","Force MFA re-enrolment on O365 for that account","Revoke all active O365 sessions","Audit the inbox for suspicious rules (external forwarding, auto-deletion)","Run a full AV scan on the user's device","Review Squid proxy logs for suspicious outbound traffic from that device IP","Notify IT Manager within 15 minutes"]}
+      },
+      no:{q:"Has the device shown any suspicious behaviour since the email was opened? (Slowness, unexpected processes, pop-ups, or unusual network activity)",
+        yes:{p:"P2",cls:"r-p2",detail:"Possible malware from attachment — escalate.",actions:["Isolate the device from the BFA network immediately","Notify IT Manager within 15 minutes","Run a full AV scan on the isolated device","Review Squid proxy logs for C2 outbound traffic from that device IP","Capture Windows Event Logs before any remediation","Check IIS and SQL Server access logs for anomalies in the same time window"]},
+        no:{p:"P3",cls:"r-p3",detail:"Low risk — investigate and monitor.",actions:["Run a full AV scan on the user's device","Review Squid proxy logs for outbound connections from that device","Block the sender domain in O365 and at the Squid proxy","Check whether other BFA staff received the same email","Document and log the incident in full detail","Brief the user on phishing recognition and awareness","Monitor the device and account for the next 48 hours"]}
+      }
+    },
+    no:{p:"P4",cls:"r-p4",detail:"No user interaction with the email — standard prevention.",actions:["Quarantine the email in the O365 admin console","Block the sender domain at O365 and the Squid proxy","Check if other BFA staff received the same email — if yes, re-classify to P3","Log the incident with full details","Brief the affected user on phishing recognition","No escalation required unless a pattern of similar emails emerges"]}
+  },
+  ransomware:{
+    q:"Are files actively being encrypted right now, or is malicious activity confirmed ongoing?",
+    yes:{p:"P1",cls:"r-p1",detail:"Active ransomware — every second matters.",actions:["IMMEDIATELY disconnect affected device(s) from the network — pull the cable or disable Wi-Fi first","Call IT Manager NOW — do not send an email","Ask Network Engineer to block SMB traffic (port 445) between all subnets","Do NOT power off servers — forensic evidence lives in memory","Check whether the IIS backup machine and SQL Server on Windows Server 2016 are affected","Verify Chronos, Xero, and O365 access is still intact from a clean, unaffected device","Notify BFA executive team within 30 minutes","Do not pay ransom without Legal and executive sign-off under any circumstances"]},
+    no:{q:"Has malware been confirmed by antivirus or Defender EDR on any BFA device?",
+      yes:{q:"Is there any evidence of lateral movement to other systems on the BFA network?",
+        yes:{p:"P1",cls:"r-p1",detail:"Lateral movement confirmed — treat as full network compromise.",actions:["Call IT Manager immediately","Isolate all confirmed affected devices from the network right now","Ask Network Engineer to audit all firewall rules and network segmentation immediately","Check all servers: IIS, SQL Server, Squid proxy, and the backup machine","Review Squid proxy logs for active C2 outbound connections","Preserve SQL Server audit logs before any recovery attempt","Notify BFA executive team — client data exposure must be assessed urgently"]},
+        no:{p:"P2",cls:"r-p2",detail:"Contained malware — escalate to IT Manager.",actions:["Isolate the affected device from the BFA network","Notify IT Manager within 15 minutes","Run a full AV scan on the isolated device","Review Squid proxy logs for any outbound C2 traffic from that device IP","Check IIS access logs for web-delivered malware indicators","Monitor all other staff devices for 24 hours for similar indicators"]}
+      },
+      no:{q:"Are there suspicious indicators only, without confirmed malware? (Unexpected process, unknown file, script execution, or Squid proxy alert)",
+        yes:{p:"P3",cls:"r-p3",detail:"Suspected malware — investigate before escalating.",actions:["Log all suspicious indicators with full detail and timestamps","Run a full AV scan on the device","Check Squid proxy logs for unusual outbound traffic from that device IP","Review Windows Event Logs on the affected device","Escalate immediately to P2 if the scan confirms a malicious file","Notify IT Manager if investigation will take more than one hour"]},
+        no:{p:"P4",cls:"r-p4",detail:"Likely false positive — standard review process.",actions:["Document the alert and review exactly what triggered it","Run a targeted scan on the flagged file or process","Check Squid proxy logs as a precautionary sanity check","Clear the alert if confirmed false positive and document the outcome","Update AV exclusions only if confirmed safe with IT Manager sign-off"]}
+      }
+    }
+  },
+  exfil:{
+    q:"Is a data transfer or exfiltration attempt actively occurring right now?",
+    yes:{q:"Does the transfer involve client financial data, client PII, or BFA financial records (Xero or SQL Server)?",
+      yes:{p:"P1",cls:"r-p1",detail:"Live exfiltration of client data — stop it immediately.",actions:["Block the outbound transfer at the Squid proxy immediately","Call IT Manager NOW — do not wait","Suspend the user account if an insider threat is suspected — do not alert the user first","Capture full traffic logs from Squid proxy before clearing any data","Preserve SQL Server audit logs for the full incident window","Notify BFA executive team — OAIC notification is likely mandatory","Engage Legal before any staff confrontation or external disclosure"]},
+      no:{p:"P2",cls:"r-p2",detail:"Active transfer detected — block and investigate.",actions:["Block the outbound transfer at the Squid proxy","Notify IT Manager within 15 minutes","Identify the user account and host device involved","Preserve Squid proxy and server logs immediately","Determine exactly what data was involved — escalate to P1 if client data is confirmed","Review O365 for concurrent email forwarding of the same data"]}
+    },
+    no:{q:"Does the alert involve sensitive data? (Client PII, financial records, Xero exports, SQL database dumps)",
+      yes:{q:"Is there evidence this access was intentional? (After-hours access, large volume, personal destination, repeated pattern, or a departing employee)",
+        yes:{p:"P1",cls:"r-p1",detail:"Suspected insider threat — involve HR and Legal now.",actions:["Notify IT Manager immediately","Do NOT confront the employee — maintain covert monitoring to preserve evidence","Export and preserve all Squid proxy logs for that user account","Review SQL Server audit logs for all data access over the past 90 days","Check O365 email logs for any external forwarding rules","Engage HR and Legal before any further action — chain of custody matters","Assess whether OAIC mandatory notification applies if client data is involved"]},
+        no:{p:"P2",cls:"r-p2",detail:"Sensitive data exposure — escalate to IT Manager.",actions:["Notify IT Manager within 15 minutes","Identify and secure the data that was exposed","Determine the destination: cloud upload, USB, or personal email?","Request deletion of data from the destination where possible","Review the Squid proxy policy for the gap that allowed the transfer","If accidental, brief the user and document — update DLP policy accordingly"]}
+      },
+      no:{p:"P3",cls:"r-p3",detail:"Non-sensitive data — investigate and document.",actions:["Log the incident with full details and timestamps","Review Squid proxy logs for the transfer details","Confirm the data classification of the transferred files","If reclassified as sensitive, escalate to P2 immediately","Notify IT Manager at next available opportunity","Review the acceptable use policy with the affected user"]}
+    }
+  },
+  unauth:{
+    q:"Has unauthorised access been detected on a BFA server or core system? (SQL Server, IIS, Squid proxy, O365 admin, Xero, or Chronos)",
+    yes:{q:"Was the access to the SQL Server, IIS web server, or client-facing systems that serve the 10,000 client accounts?",
+      yes:{p:"P1",cls:"r-p1",detail:"Server compromise — immediate response required.",actions:["Call IT Manager immediately","Ask Server Administrator to lock down the server and revoke compromised credentials","Block suspicious source IPs at the firewall and Squid proxy","Preserve all server logs before any remediation — forensics depend on this","Check SQL Server audit logs: were client financial records accessed?","Notify BFA executive team — OAIC notification is likely if client data was accessed","Do not patch or restore until the full forensic review is complete"]},
+      no:{q:"Is the access from an internal user accessing systems or data beyond their role permissions?",
+        yes:{p:"P2",cls:"r-p2",detail:"Insider access violation — escalate with HR consideration.",actions:["Notify IT Manager within 15 minutes","Revoke the excess permissions immediately","Preserve access logs as evidence — do not modify under any circumstances","Review role-based access controls across all BFA systems","If access appears intentional, escalate immediately to HR and Legal","Audit all actions taken during the unauthorised session in SQL and IIS logs"]},
+        no:{p:"P3",cls:"r-p3",detail:"Possible misconfiguration or account error.",actions:["Log the access event with full details","Review the user's account permissions in Active Directory","Confirm whether the access was accidental or the result of a policy gap","Correct permissions and document the change made","Notify IT Manager and review the access control policy","Monitor the account for 48 hours for any further anomalies"]}
+      }
+    },
+    no:{q:"Has an external IP attempted brute force or probing against BFA systems? (IIS login page, Squid proxy, RDP, or O365 sign-in)",
+      yes:{p:"P2",cls:"r-p2",detail:"External attack in progress — notify IT Manager.",actions:["Block the attacking IP ranges at the firewall immediately","Notify IT Manager within 15 minutes","Ask Network Engineer to review firewall rules and IPS alert history","Review IIS logs and Squid proxy logs for any successful access","Check whether any BFA accounts were locked out by the brute force attempt","Assess whether the attack is targeted (specific users) or an automated scan","Escalate to P1 immediately if any successful login is confirmed"]},
+      no:{p:"P3",cls:"r-p3",detail:"Monitor and investigate.",actions:["Log the suspicious access attempt with source IP and timestamp","Review Squid proxy and IIS access logs for the time window in question","Verify that no successful unauthorised access occurred","Check for related alerts in the last 24 to 48 hours","Notify IT Manager and Network Engineer","Update firewall block rules if a new attack pattern has been identified"]}
+    }
+  }
+};
+
+// ── TREE STATE ──
+let curScenario = 'classify', curNode = null, pathHistory = [];
+
+function initTree(s) {
+  curScenario = s; curNode = TREES[s]; pathHistory = [];
+  renderTree();
+}
+
+function answer(yn) {
+  pathHistory.push({ q: curNode.q, a: yn });
+  curNode = yn ? curNode.yes : curNode.no;
+  renderTree();
+}
+
+function resetTree() { initTree(curScenario); }
+
+function renderTree() {
+  // Scenario buttons
+  document.getElementById('scRow').innerHTML = SCENARIOS.map(s =>
+    `<button class="sc-btn${s===curScenario?' active':''}" onclick="initTree('${s}')">${LABELS[s]}</button>`
+  ).join('');
+
+  // Breadcrumb
+  const bc = document.getElementById('breadcrumb');
+  if (pathHistory.length === 0) {
+    bc.innerHTML = '<span style="font-size:11px;color:#aaa;font-style:italic;">Your decision path will appear here as you answer each question</span>';
+  } else {
+    bc.innerHTML = pathHistory.map((p, i) => {
+      const short = p.q.length > 50 ? p.q.slice(0,47)+'…' : p.q;
+      const ans = p.a ? '<span class="bc-yes">YES</span>' : '<span class="bc-no">NO</span>';
+      return (i > 0 ? '<span class="bc-arr">›</span>' : '') +
+        `<span class="bc-q">${short}</span>${ans}`;
+    }).join('');
+  }
+
+  // Content
+  const el = document.getElementById('treeContent');
+  const n = curNode;
+  if (n.p) {
+    const icons = { P1:'🔴', P2:'🟠', P3:'🟡', P4:'⚪' };
+    el.innerHTML = `
+      <div class="result-card ${n.cls}">
+        <div class="r-priority">${icons[n.p]} ${n.p} — ${n.p==='P1'?'Critical':n.p==='P2'?'High':n.p==='P3'?'Medium':'Low'}</div>
+        <div class="r-detail">${n.detail}</div>
+        <ul class="r-actions">${n.actions.map(a=>`<li>${a}</li>`).join('')}</ul>
+      </div>
+      <button class="btn-reset" onclick="resetTree()">↺ Start this scenario again</button>`;
+  } else {
+    const step = pathHistory.length + 1;
+    el.innerHTML = `
+      <div class="q-card">
+        <div class="q-step">Step ${step} — Answer Yes or No</div>
+        <div class="q-text">${n.q}</div>
+        <div class="q-btns">
+          <button class="btn-yes" onclick="answer(true)">YES</button>
+          <button class="btn-no"  onclick="answer(false)">NO</button>
+        </div>
+      </div>`;
+  }
+}
+
+initTree('classify');
+</script>
+</body>
+</html>
