@@ -1,0 +1,355 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>BFA Financial Advisory — Cybersecurity IR Playbooks</title>
+<style>
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body { font-family: Arial, sans-serif; background: #f4f6f9; color: #1F1F1F; }
+
+  .top-bar { background: #1F3864; color: white; padding: 18px 32px; }
+  .top-bar h1 { font-size: 20px; font-weight: 700; }
+  .top-bar p  { font-size: 13px; opacity: .75; margin-top: 4px; }
+
+  .container { max-width: 1200px; margin: 0 auto; padding: 24px 20px; }
+
+  /* Attack selector */
+  .attack-row { display: flex; flex-wrap: wrap; gap: 8px; margin-bottom: 20px; }
+  .atk { padding: 7px 16px; border-radius: 20px; border: 1.5px solid #c8cfd8;
+         background: white; font-size: 13px; cursor: pointer; font-weight: 500;
+         color: #44546A; transition: all .15s; }
+  .atk:hover { border-color: #2E75B6; color: #2E75B6; }
+  .atk.active { background: #EEEDFE; border-color: #534AB7; color: #3C3489; }
+
+  /* Severity + IOC row */
+  .meta-row { display: flex; flex-wrap: wrap; gap: 12px; margin-bottom: 16px; align-items: flex-start; }
+  .sev-badge { padding: 5px 14px; border-radius: 12px; font-size: 12px; font-weight: 700; white-space: nowrap; }
+  .sev-critical { background: #FDECEA; color: #C00000; border: 1px solid #F09595; }
+  .sev-high     { background: #FFF3E0; color: #C55A11; border: 1px solid #FAC775; }
+
+  .esc-box { background: #FFF3E0; border: 1px solid #FAC775; border-radius: 8px;
+             padding: 10px 14px; font-size: 12px; color: #633806; flex: 1; min-width: 260px; }
+  .esc-box strong { display: block; margin-bottom: 3px; }
+
+  .ioc-box { background: white; border: 1px solid #e0e4ea; border-radius: 8px;
+             padding: 10px 14px; margin-bottom: 16px; }
+  .ioc-box p { font-size: 11px; font-weight: 700; color: #44546A; margin-bottom: 6px;
+               text-transform: uppercase; letter-spacing: .05em; }
+  .ioc-tags { display: flex; flex-wrap: wrap; gap: 6px; }
+  .ioc-tag { font-size: 11px; padding: 2px 8px; background: #f4f6f9;
+             border: 1px solid #c8cfd8; border-radius: 4px; font-family: monospace; color: #44546A; }
+
+  /* Phase tabs */
+  .phase-tabs { display: flex; gap: 2px; border-bottom: 2px solid #e0e4ea;
+                margin-bottom: 18px; overflow-x: auto; }
+  .ph { padding: 8px 14px; border: none; background: transparent; font-size: 12px;
+        font-weight: 600; cursor: pointer; color: #888; border-bottom: 3px solid transparent;
+        margin-bottom: -2px; white-space: nowrap; transition: all .15s; }
+  .ph:hover { color: #2E75B6; }
+  .ph.active { color: #2E75B6; border-bottom-color: #2E75B6; }
+
+  .phase-time { font-size: 11px; color: #888; margin-bottom: 14px; }
+
+  /* 3 column grid */
+  .cols { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 12px; }
+  @media(max-width:700px) { .cols { grid-template-columns: 1fr; } }
+
+  .col-card { background: white; border: 1px solid #e0e4ea; border-radius: 10px;
+              padding: 14px; border-top: 4px solid #888; }
+  .col-card.gen { border-top-color: #44546A; }
+  .col-card.edlp { border-top-color: #1D6A96; }
+  .col-card.edr  { border-top-color: #2F5597; }
+
+  .col-hdr { font-size: 11px; font-weight: 700; text-transform: uppercase;
+             letter-spacing: .05em; margin-bottom: 10px; display: flex; align-items: center; gap: 6px; }
+  .col-card.gen  .col-hdr { color: #44546A; }
+  .col-card.edlp .col-hdr { color: #1D6A96; }
+  .col-card.edr  .col-hdr { color: #2F5597; }
+
+  .dot { width: 8px; height: 8px; border-radius: 50%; flex-shrink: 0; }
+  .dot-gen  { background: #44546A; }
+  .dot-edlp { background: #1D6A96; }
+  .dot-edr  { background: #2F5597; }
+
+  ul.actions { list-style: none; padding: 0; }
+  ul.actions li { font-size: 12.5px; line-height: 1.55; padding: 5px 0;
+                  border-bottom: 1px solid #f0f0f0; color: #1F1F1F; }
+  ul.actions li:last-child { border-bottom: none; }
+  ul.actions li::before { content: "→ "; color: #aaa; font-weight: 600; }
+
+  /* Legend */
+  .legend { display: flex; gap: 20px; flex-wrap: wrap; margin-bottom: 16px; }
+  .leg-item { display: flex; align-items: center; gap: 6px; font-size: 11px; color: #555; }
+</style>
+</head>
+<body>
+
+<div class="top-bar">
+  <h1>BFA Financial Advisory — Cybersecurity Incident Response Playbooks</h1>
+  <p>Symantec EDLP &nbsp;·&nbsp; Microsoft Defender EDR &nbsp;·&nbsp; NIST SP 800-61 Rev 2 &nbsp;·&nbsp; 6 Attack Types &nbsp;·&nbsp; 6 Phases</p>
+</div>
+
+<div class="container">
+
+  <div class="attack-row" id="attackRow"></div>
+  <div class="meta-row" id="metaRow"></div>
+  <div class="ioc-box" id="iocBox"></div>
+
+  <div class="legend">
+    <div class="leg-item"><span class="dot dot-gen"></span>General IR Actions</div>
+    <div class="leg-item"><span class="dot dot-edlp"></span>Symantec EDLP Actions</div>
+    <div class="leg-item"><span class="dot dot-edr"></span>Microsoft Defender EDR Actions</div>
+  </div>
+
+  <div class="phase-tabs" id="phaseTabs"></div>
+  <div class="phase-time" id="phaseTime"></div>
+  <div class="cols" id="colsContent"></div>
+</div>
+
+<script>
+const DATA = [
+  {
+    id:"phishing", label:"Phishing / BEC", severity:"high",
+    escalate:"Escalate to CISO if C-suite accounts are targeted or wire transfer fraud is attempted.",
+    iocs:["Suspicious sender domain","Base64 encoded URLs","Outlook rule creation","Token auth from new geo","Mass email forward rules"],
+    phases:[
+      { name:"Detect", time:"0–15 min",
+        gen:["Alert from email gateway or anti-spam filter","User reports suspicious email to Helpdesk","SIEM alert on login anomaly or new geo login"],
+        edlp:["EDLP email policy trigger on sensitive data outbound","DLP alert on credential-like content in attachments","EDLP flags .csv or .xlsx attachment to external domain"],
+        edr:["Defender alert: Suspicious PowerShell spawned via Outlook","Safe Links detonation alert in M365 Defender","Defender for Office 365 flags phishing URL in email body"] },
+      { name:"Triage", time:"15–30 min",
+        gen:["Identify scope — how many users received the email?","Determine if link or attachment was clicked","Check if credentials were entered on any external site"],
+        edlp:["Query EDLP incident console for triggered policies matching the email event","Check for data movement correlated to email arrival time","Review EDLP alert history for the affected user account"],
+        edr:["Review Defender device timeline for process tree on affected host","Advanced Hunting KQL: search for suspicious child processes of Outlook.exe","Check M365 admin for new inbox rules created on affected account"] },
+      { name:"Contain", time:"30–60 min",
+        gen:["Block sender domain in O365 email gateway and Squid proxy","Quarantine all instances of the email across all mailboxes","Disable affected account in Active Directory immediately"],
+        edlp:["Apply EDLP emergency block policy to affected user account","Restrict USB and cloud upload paths from the compromised account","Enable enhanced EDLP monitoring on affected host"],
+        edr:["Isolate endpoint via Defender portal — Device > Isolate","Force token revocation for affected account via Entra ID","Run Live Response session to collect suspicious files and process dumps"] },
+      { name:"Eradicate", time:"1–4 hrs",
+        gen:["Reset password and revoke all active O365 sessions","Remove malicious inbox rules created by attacker","Purge phishing email from all mailboxes via M365 Content Search and Purge"],
+        edlp:["Audit EDLP logs for any data that left before containment","Review DLP policy gaps that allowed the initial email through","Preserve all EDLP logs for forensics and potential OAIC notification"],
+        edr:["Run full Defender AV scan on isolated endpoint","Remove persistence artefacts via Live Response: scheduled tasks, registry run keys","Confirm no additional devices show same indicators via Advanced Hunting"] },
+      { name:"Recover", time:"4–24 hrs",
+        gen:["Re-enable account with new credentials","Re-enrol MFA for affected account via Entra ID","Restore email inbox rules to known-good state"],
+        edlp:["Re-enable standard EDLP policies on recovered account","Confirm no residual data exfiltration paths remain open"],
+        edr:["Unisolate device after confirmed clean AV scan","Validate EDR sensor health and connectivity post-recovery","Monitor account and device for 48 hours for recurrence"] },
+      { name:"Lessons Learned", time:"24–72 hrs",
+        gen:["Document full incident timeline and all indicators","Update phishing simulation training for BFA staff","Review O365 email gateway rule effectiveness"],
+        edlp:["Update EDLP email policies with new sender domains and content patterns","Add BEC-specific content fingerprints to DLP library"],
+        edr:["Add IOCs (domains, hashes, IPs) to Defender Custom Indicators","Update Advanced Hunting KQL queries with new TTPs observed","Review and tune Safe Links and Safe Attachments policies in M365 Defender"] }
+    ]
+  },
+  {
+    id:"ransomware", label:"Ransomware", severity:"critical",
+    escalate:"Immediately escalate to CISO, Legal, and Executive team. Do NOT pay ransom without Legal sign-off. Engage IR retainer if available.",
+    iocs:["Mass file rename or encrypt activity","Shadow copy deletion via vssadmin","Lateral movement via SMB","C2 beacon to unusual IP","Ransom note dropped on file shares"],
+    phases:[
+      { name:"Detect", time:"0–10 min",
+        gen:["SIEM alert on mass file modification event","Network share encryption detected by monitoring","User reports files are inaccessible or renamed"],
+        edlp:["EDLP triggers on bulk file reads before encryption begins","DLP alert on database or file dumps to local staging directories","EDLP detects archive creation (.zip, .7z) followed by outbound transfer"],
+        edr:["Defender alert: Ransomware behaviour detected on endpoint","Alert: vssadmin.exe or wbadmin.exe executed by non-IT account","Defender: Suspicious process creating mass files with new extensions","Controlled Folder Access block triggered on protected directory"] },
+      { name:"Triage", time:"10–30 min",
+        gen:["Identify patient zero — first infected host by alert timestamp","Determine ransomware family from ransom note or file extension","Scope lateral movement — which systems and shares are affected?"],
+        edlp:["Check EDLP for data staging or exfiltration before encryption (double extortion check)","Identify if sensitive client data was accessed or copied before encryption","Export EDLP incident log for the 24 hours prior to the alert"],
+        edr:["Use Defender Advanced Hunting to find first execution event and hash","Review Defender device timeline to identify initial access vector","Map lateral movement using network events in MDE across all BFA devices"] },
+      { name:"Contain", time:"30–90 min",
+        gen:["Immediately pull affected hosts off network — physical disconnect first","Disable all AD accounts used for lateral movement","Block C2 IPs and domains at firewall and Squid proxy"],
+        edlp:["Apply emergency EDLP block policy — disable all USB and cloud upload paths","Enforce strict DLP on all remaining clean endpoints to prevent data staging","Preserve all EDLP logs before any system recovery begins"],
+        edr:["Bulk isolate all affected devices via Defender portal in one operation","Disable compromised service accounts in Active Directory","Use Defender Live Response to kill malicious processes and preserve memory artefacts"] },
+      { name:"Eradicate", time:"2–12 hrs",
+        gen:["Remove ransomware binary, scheduled tasks, and all persistence mechanisms","Identify and close the initial access vector (e.g., vulnerable VPN, phishing)","Patch the exploited vulnerability before any system is restored to network"],
+        edlp:["Audit EDLP logs to confirm full scope of data exfiltrated before encryption","Preserve all DLP logs for forensics and mandatory OAIC NDB assessment","Document all data confirmed exfiltrated — required for Privacy Act obligations"],
+        edr:["Full AV scan on all isolated hosts via Defender portal","Submit malware sample to Defender Threat Intelligence portal","Check Defender Vulnerability Management for the CVE that was exploited","Remove all persistence: registry, WMI subscriptions, scheduled tasks, services"] },
+      { name:"Recover", time:"12 hrs–7 days",
+        gen:["Restore from clean, verified backups — confirm backup integrity first","Rebuild compromised systems from gold image where backup is not available","Prioritise restoration of IIS web server and SQL Server for business continuity"],
+        edlp:["Re-enable EDLP policies on all recovered systems","Verify EDLP agent is reinstalled and reporting correctly on rebuilt hosts","Confirm no residual data exfiltration paths remain on recovered systems"],
+        edr:["Unisolate devices only after confirmed clean AV scan","Validate EDR sensor health and telemetry on all restored systems","Deploy updated threat intelligence and detection rules before reconnecting to network"] },
+      { name:"Lessons Learned", time:"7–14 days",
+        gen:["Produce full post-incident report for BFA executive team","Notify OAIC if personal or financial data was confirmed exfiltrated (Privacy Act)","Assess cyber insurance claim requirements and document evidence"],
+        edlp:["Update EDLP policies to detect data staging behaviour patterns identified","Add newly discovered sensitive data types to content fingerprint library","Review EDLP alert-to-block ratio — adjust thresholds based on incident findings"],
+        edr:["Update Defender Custom Indicators with all IOCs from the incident","Tune detection rules and ASR policies based on initial access vector identified","Review and test backup and recovery runbooks — confirm RTO and RPO targets are met"] }
+    ]
+  },
+  {
+    id:"exfil", label:"Data Exfiltration", severity:"high",
+    escalate:"Escalate to Privacy Officer and Legal immediately if personal data involved. Mandatory OAIC NDB notification may apply under the Australian Privacy Act 1988.",
+    iocs:["Large upload to cloud storage","Unusual after-hours data access","Bulk download from SharePoint or OneDrive","Archive files created then sent externally","Data sent to personal email address"],
+    phases:[
+      { name:"Detect", time:"0–30 min",
+        gen:["SIEM alert on large outbound data transfer event","Cloud access security broker alert on unusual upload","DLP system notification — policy match on sensitive content"],
+        edlp:["EDLP alert on policy match: PII or financial data outbound","Network DLP trigger on large HTTPS upload via Squid proxy","EDLP endpoint agent: attempt to copy sensitive data to USB or cloud sync folder"],
+        edr:["Defender alert: Unusual process accessing credential stores or data directories","Alert on data archive creation followed immediately by network upload","Defender: Process accessing SQL data directories outside approved application list"] },
+      { name:"Triage", time:"30–60 min",
+        gen:["Identify user account and host device involved in the transfer","Determine what data was accessed and the total volume transferred","Classify data sensitivity: PII, client financial records, IP, or internal"],
+        edlp:["Pull EDLP incident detail: file names, content fingerprint match, destination address","Review EDLP activity log for the affected user — 30, 60, and 90-day window","Determine whether the EDLP policy blocked the transfer or only alerted"],
+        edr:["Review Defender device timeline for all file access and copy operations","Identify the process responsible for the data movement","Correlate with user identity, access rights, and time of access in MDE"] },
+      { name:"Contain", time:"1–2 hrs",
+        gen:["Suspend user account immediately if insider threat is confirmed or suspected","Block destination domains and IPs at Squid proxy and firewall","Revoke all cloud OAuth tokens for the affected account via Entra ID"],
+        edlp:["Apply EDLP block policy to the affected user account in the console","Enable strict EDLP monitoring mode on the affected host","Block USB and printer redirection via emergency EDLP policy update"],
+        edr:["Isolate endpoint via Defender portal if malware-assisted exfiltration is suspected","Use Defender Live Response to halt suspicious processes and collect artefacts","Perform memory dump via Live Response for forensic analysis"] },
+      { name:"Eradicate", time:"2–8 hrs",
+        gen:["Revoke all external shares of the affected data immediately","Request data deletion from the destination service where possible","Audit access permissions on all affected data stores"],
+        edlp:["Review and close EDLP policy gaps that allowed the alert to fire without blocking","Update content fingerprints for all data types confirmed as involved","Document all data confirmed to have left the BFA environment"],
+        edr:["Remove any malware or attacker tools used in the exfiltration","Clear all persistence mechanisms installed by the attacker","Verify no backdoor or remote access tool remains on any BFA device"] },
+      { name:"Recover", time:"8–24 hrs",
+        gen:["Re-enable account with enhanced monitoring profile applied","Apply principle of least privilege to all affected repositories and shares","Notify affected data owners and relevant business units"],
+        edlp:["Re-enable standard EDLP policies on recovered systems","Confirm EDLP agent is reporting correctly on the cleaned host","Apply enhanced EDLP monitoring profile to the affected user going forward"],
+        edr:["Unisolate device after confirmed clean scan","Restore any files modified or deleted by attacker tools","Confirm EDR sensor is active and reporting healthy telemetry"] },
+      { name:"Lessons Learned", time:"24–72 hrs",
+        gen:["Conduct mandatory NDB breach assessment under the Australian Privacy Act 1988","Brief BFA executive and board on data exposure and regulatory obligations","Update the data classification and handling policy for all staff"],
+        edlp:["Tune EDLP policies based on the bypass method or gap identified in the incident","Add newly identified sensitive data to the EDLP content library","Review the EDLP alert-to-block threshold ratio and adjust accordingly"],
+        edr:["Update Defender Advanced Hunting queries with all attacker TTPs","Add all attacker tooling indicators to Defender Custom Indicators","Review and tighten cloud application security policies in M365 Defender"] }
+    ]
+  },
+  {
+    id:"insider", label:"Insider Threat", severity:"high",
+    escalate:"Involve HR and Legal BEFORE any confrontation with the employee. All evidence must be handled to preserve chain of custody for potential legal proceedings.",
+    iocs:["Access outside business hours","Mass download of sensitive documents","Login from unusual location","Resignation followed by elevated data access","Attempts to disable the EDLP client agent"],
+    phases:[
+      { name:"Detect", time:"Ongoing monitoring",
+        gen:["User Behaviour Analytics alert on deviation from peer group baseline","Manager or colleague reports concern to IT Manager or HR","After-hours access alert triggered by SIEM or EDLP policy"],
+        edlp:["EDLP alert on bulk sensitive file access exceeding threshold","DLP trigger on data moved to personal cloud storage or USB device","EDLP agent tamper alert — user attempting to disable or bypass the agent"],
+        edr:["Defender alert on process attempting to disable or modify security tools","Alert on credential access attempts beyond the user's normal access scope","Defender: Tools associated with data collection installed outside software management"] },
+      { name:"Triage", time:"1–4 hrs",
+        gen:["Review the full alert history and identify behavioural pattern over time","Confirm employment status of the user — active, under performance management, or departing","Determine whether a legitimate business justification exists for the data access"],
+        edlp:["Pull the full EDLP activity report for the user — 90-day window minimum","Identify all data touched, copied, printed, or transmitted externally","Correlate EDLP events with time of day, network location, and access volume"],
+        edr:["Review Defender device timeline for the user's assigned host across the alert window","Check for sensitive process access: LSASS, credential managers, certificate stores","Look for tools installed outside the approved software management system"] },
+      { name:"Contain", time:"Covert — HR and Legal led",
+        gen:["Apply enhanced monitoring silently — do NOT alert or confront the employee yet","Work with HR and Legal on evidence preservation strategy before any action","Do not alert the user at any point during the covert monitoring phase"],
+        edlp:["Switch EDLP to enhanced logging mode — do not apply block policy yet to preserve evidence","Enable activity capture features if organisational policy and employment agreements permit","Ensure all EDLP logs are exported to a secure, tamper-evident evidence store"],
+        edr:["Enable Defender enhanced telemetry collection on the device silently","Capture a forensic snapshot of the device state via Live Response","Do not isolate the device during the covert monitoring phase — this would alert the user"] },
+      { name:"Eradicate", time:"Post HR and Legal decision",
+        gen:["Disable all accounts immediately at the point of HR action","Revoke all access: physical, logical, cloud, VPN, and SaaS applications","Retrieve all corporate devices, tokens, and access cards"],
+        edlp:["Export all EDLP evidence and formally hand to Legal for chain of custody","Apply block policy to all remaining access paths immediately after HR action","Audit the full scope of all data that left the organisation via EDLP logs"],
+        edr:["Perform full forensic capture of the employee's assigned device before wiping","Preserve the device image for potential legal proceedings","Wipe or re-image the device only after forensic image is confirmed and secured"] },
+      { name:"Recover", time:"1–5 days",
+        gen:["Audit and revoke all permissions granted or modified by the departing user","Transfer ownership of all business-critical files to the appropriate manager","Brief the affected team lead confidentially — avoid disclosing investigation details"],
+        edlp:["Review EDLP policies for insider threat detection gaps identified during the incident","Tighten access controls on sensitive data repositories in EDLP policy","Review the off-boarding DLP checklist — ensure it triggers enhanced monitoring automatically"],
+        edr:["Confirm no backdoors, remote access tools, or persistence mechanisms remain","Verify EDR coverage and sensor health across all systems the user had access to","Review privileged access management controls — ensure least privilege is enforced"] },
+      { name:"Lessons Learned", time:"5–14 days",
+        gen:["Review the off-boarding security process and update the checklist","Update the Acceptable Use Policy with any gaps identified during the investigation","Run an anonymised team awareness session on insider threat indicators"],
+        edlp:["Update EDLP insider threat policy profiles based on TTPs observed","Implement pre-departure heightened monitoring triggers in EDLP — activated on resignation","Review data classification accuracy — ensure all sensitive data is correctly labelled"],
+        edr:["Update User Behaviour Analytics baselines based on investigation findings","Tune Defender alerts for insider threat TTPs identified in this incident","Review administrative privilege scoping across all BFA systems"] }
+    ]
+  },
+  {
+    id:"malware", label:"Malware / RAT", severity:"critical",
+    escalate:"Escalate immediately if malware connects to known threat actor infrastructure or if lateral movement is confirmed across BFA's network. Engage threat intelligence team.",
+    iocs:["Unexpected outbound connection on unusual ports","Process injecting into svchost or explorer","Suspicious scheduled task created","New local admin account created","Lateral movement via PsExec or WMI"],
+    phases:[
+      { name:"Detect", time:"0–15 min",
+        gen:["Microsoft Defender EDR alert on suspicious binary execution","SIEM alert on C2 beacon pattern or unusual outbound connection","Network IDS alert on unusual outbound traffic to external IP"],
+        edlp:["EDLP alert if malware attempts to stage files for exfiltration","DLP trigger on credential store access combined with outbound data movement","EDLP detects archive creation (.zip, .7z) followed immediately by upload"],
+        edr:["Defender alert: Suspicious process injection detected","Alert: Remote access tool behaviour identified on endpoint","Defender: Command and control traffic pattern identified","Alert: New local administrator account created outside IT provisioning process"] },
+      { name:"Triage", time:"15–45 min",
+        gen:["Identify the affected host, user context, and initial access vector","Determine malware family if possible from Defender threat intelligence","Assess whether C2 connection is active and live at time of triage"],
+        edlp:["Check EDLP for data staging or exfiltration activity correlated to the alert time","Determine if sensitive client data was accessed by any process associated with the malware","Export EDLP incident log for the device for the 24-hour window prior to alert"],
+        edr:["Review the full Defender device timeline for the affected host","Identify the complete process tree: parent process → malware → child processes","Check MDE network events for active C2 connections and destination IPs","Use Advanced Hunting to search for the same hash or indicator across all BFA devices"] },
+      { name:"Contain", time:"45–90 min",
+        gen:["Isolate the infected host from the BFA network immediately","Block all known C2 IPs and domains at the firewall and Squid proxy","Disable any AD accounts that the malware accessed or used for lateral movement"],
+        edlp:["Apply emergency EDLP block policy on the affected host immediately","Block all external data transfer paths from the host until confirmed clean"],
+        edr:["Isolate device via Defender portal — Device > Isolate from network","Stop and quarantine the malicious process via Defender Live Response","Add the malware hash to Defender Custom Block Indicators across all BFA devices","Trigger AV scan on all devices with the same user or network segment exposure"] },
+      { name:"Eradicate", time:"1–6 hrs",
+        gen:["Remove all malware binaries and persistence mechanisms confirmed on the device","Patch the vulnerability or close the initial access vector used for infection","Reset credentials for every account the malware touched or accessed"],
+        edlp:["Audit EDLP logs to confirm the full scope of any data exfiltration","Preserve all evidence for forensics and potential OAIC notification assessment"],
+        edr:["Run a full disk scan on the isolated device via Defender portal","Remove all persistence mechanisms: scheduled tasks, registry run keys, WMI subscriptions, services","Submit malware samples to Defender Threat Intelligence for analysis","Check Defender Vulnerability Management for the CVE exploited in the initial infection"] },
+      { name:"Recover", time:"6–48 hrs",
+        gen:["Re-image the host if full system compromise is confirmed","Restore from clean backup if re-imaging is not immediately possible","Rotate all credentials that were accessible from the compromised host"],
+        edlp:["Re-enable EDLP agent on the recovered device and confirm it is reporting","Verify no malware-related EDLP exceptions or exclusions were applied during the incident"],
+        edr:["Unisolate the re-imaged device only after confirmed clean AV scan","Validate EDR sensor health and telemetry connectivity on the recovered device","Run a post-recovery threat hunt on all adjacent systems in the same network segment"] },
+      { name:"Lessons Learned", time:"48–96 hrs",
+        gen:["Document the full attack chain from initial access to containment","Review the patch management process — why was the exploited CVE not patched?","Improve network segmentation to limit lateral movement potential in future incidents"],
+        edlp:["Update EDLP policies to detect data staging behaviour similar to that observed","Review the EDLP exception and exclusion list for unnecessary gaps"],
+        edr:["Add all IOCs from the incident to Defender Custom Indicators","Create a custom detection rule for the TTPs observed in this incident","Review and update Defender ASR rules based on the initial access method used"] }
+    ]
+  },
+  {
+    id:"ddos", label:"DDoS", severity:"high",
+    escalate:"Escalate to ISP or upstream provider and cloud WAF vendor immediately. Notify BFA executive team if client-facing services are impacted and unavailable.",
+    iocs:["Sudden traffic spike 10x above baseline","High connection rate from many source IPs","Service unavailable or timeout errors on IIS","Bandwidth saturation on the uplink","Degraded API response times on client portal"],
+    phases:[
+      { name:"Detect", time:"0–10 min",
+        gen:["Network monitoring alert on traffic spike significantly above baseline","Cloud WAF alert on HTTP request flood targeting IIS web server","NOC monitoring detects service degradation or unavailability on client portal"],
+        edlp:["EDLP less directly relevant for DDoS — monitor for simultaneous data exfiltration (distraction pattern)","Flag immediately if sensitive data alerts coincide with the DDoS event window"],
+        edr:["Defender alert if any BFA endpoint is part of a botnet and sending attack traffic outbound","Check for malware on internal hosts if DDoS traffic is originating from inside the BFA network"] },
+      { name:"Triage", time:"10–30 min",
+        gen:["Classify the DDoS type: volumetric (bandwidth), protocol (SYN flood), or application layer (HTTP flood)","Identify the exact target: specific IP address, service, or IIS application endpoint","Determine if any internal BFA hosts are participating in the attack as botnet members"],
+        edlp:["No primary EDLP action for DDoS — ensure EDLP logs are available if distraction theory is confirmed","Monitor EDLP for any data movement alerts occurring simultaneously with the DDoS"],
+        edr:["Use Defender to check if any internal BFA endpoints are generating outbound attack traffic","Review network telemetry in MDE for anomalous outbound traffic patterns from staff devices"] },
+      { name:"Contain", time:"30–90 min",
+        gen:["Engage ISP immediately for upstream traffic scrubbing or null route of attacking IP ranges","Enable cloud WAF rate limiting rules and geo-blocking on IIS if applicable","Redirect traffic through DDoS mitigation service if BFA has contracted one"],
+        edlp:["Monitor EDLP for simultaneous data exfiltration attempts occurring during the DDoS window","Apply restrictive EDLP policies during the incident window as a precautionary measure"],
+        edr:["Isolate any internal BFA endpoint confirmed as participating in a botnet","Block all known botnet C2 addresses via Defender Custom Indicators immediately"] },
+      { name:"Eradicate", time:"1–6 hrs",
+        gen:["Work with ISP to identify attack source ranges and implement permanent ACL blocks","Remove botnet malware from any internal BFA hosts confirmed as participants","Patch any web application vulnerabilities exploited in an application-layer attack on IIS"],
+        edlp:["Confirm no data exfiltration occurred during the DDoS attack window via EDLP logs","Review the full EDLP incident log for the complete duration of the attack"],
+        edr:["Fully clean and re-image any botnet-infected BFA endpoints","Confirm no persistence mechanisms remain on cleaned devices","Update network firewall ACLs to block confirmed attack source ranges permanently"] },
+      { name:"Recover", time:"2–12 hrs",
+        gen:["Restore IIS web server service after attack traffic subsides","Validate full service health, response times, and availability for BFA's client portal","Disable temporary geo-blocks and rate limits once the attack risk has passed"],
+        edlp:["Restore standard EDLP monitoring policies across all endpoints","Confirm EDLP console is back to standard monitoring and no emergency policies remain active"],
+        edr:["Unisolate any cleaned endpoints that were isolated during containment","Validate EDR sensor health and connectivity on all affected systems","Review and normalise all emergency firewall rules applied during the incident"] },
+      { name:"Lessons Learned", time:"24–72 hrs",
+        gen:["Review DDoS mitigation playbook effectiveness — update ISP and WAF contact runbooks","Assess whether BFA's bandwidth and scrubbing capacity is adequate for future attacks","Document all source IPs, attack vectors, and response actions for future reference"],
+        edlp:["Document whether DDoS was used as a distraction — update DLP correlation rules if so","Add simultaneous DDoS and data exfiltration scenario to the BFA threat model"],
+        edr:["Update Defender detection rules for botnet activity based on TTPs observed","Review ASR rules and network protection settings in Defender for improvement opportunities","Include DDoS scenario in next BFA tabletop exercise to test response readiness"] }
+    ]
+  }
+];
+
+let selAttack = 0, selPhase = 0;
+
+function renderAttacks() {
+  document.getElementById("attackRow").innerHTML = DATA.map((a,i) =>
+    `<button class="atk${i===selAttack?' active':''}" onclick="selectAttack(${i})">${a.label}</button>`
+  ).join("");
+}
+
+function renderMeta() {
+  const a = DATA[selAttack];
+  const sc = a.severity==="critical" ? "sev-critical" : "sev-high";
+  const dot = a.severity==="critical" ? "🔴" : "🟠";
+  document.getElementById("metaRow").innerHTML = `
+    <span class="sev-badge ${sc}">${dot} ${a.severity.toUpperCase()}</span>
+    <div class="esc-box"><strong>⚡ Escalation trigger:</strong>${a.escalate}</div>`;
+  document.getElementById("iocBox").innerHTML = `
+    <p>Key Indicators of Compromise</p>
+    <div class="ioc-tags">${a.iocs.map(i=>`<span class="ioc-tag">${i}</span>`).join("")}</div>`;
+}
+
+function renderPhases() {
+  const a = DATA[selAttack];
+  const colors = ["#534AB7","#185FA5","#A32D2D","#854F0B","#0F6E56","#3B6D11"];
+  document.getElementById("phaseTabs").innerHTML = a.phases.map((p,i) =>
+    `<button class="ph${i===selPhase?' active':''}"
+      style="${i===selPhase?`color:${colors[i]};border-bottom-color:${colors[i]}`:''}"
+      onclick="selectPhase(${i})">Phase ${i+1}: ${p.name}</button>`
+  ).join("");
+}
+
+function renderContent() {
+  const p = DATA[selAttack].phases[selPhase];
+  document.getElementById("phaseTime").innerHTML = `⏱ Target response time: <strong>${p.time}</strong>`;
+  const mkList = items => items.map(x=>`<li>${x}</li>`).join("");
+  document.getElementById("colsContent").innerHTML = `
+    <div class="col-card gen">
+      <div class="col-hdr"><span class="dot dot-gen"></span>General IR Actions</div>
+      <ul class="actions">${mkList(p.gen)}</ul>
+    </div>
+    <div class="col-card edlp">
+      <div class="col-hdr"><span class="dot dot-edlp"></span>Symantec EDLP Actions</div>
+      <ul class="actions">${mkList(p.edlp)}</ul>
+    </div>
+    <div class="col-card edr">
+      <div class="col-hdr"><span class="dot dot-edr"></span>Microsoft Defender EDR Actions</div>
+      <ul class="actions">${mkList(p.edr)}</ul>
+    </div>`;
+}
+
+function selectAttack(i) { selAttack=i; selPhase=0; render(); }
+function selectPhase(i)  { selPhase=i; renderPhases(); renderContent(); }
+function render() { renderAttacks(); renderMeta(); renderPhases(); renderContent(); }
+render();
+</script>
+</body>
+</html>
