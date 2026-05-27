@@ -1,36 +1,23 @@
-# BFA Financial Advisory — Cybersecurity Incident Response Plan
+# BFA Financial Advisory — Cybersecurity IR Tools
 
-## Project Overview
-This repository contains the deliverables for a Cybersecurity 
-Incident Response Plan (CSIRP) developed for BFA Financial Advisory.
+This repository contains the interactive cybersecurity incident 
+Response tools developed for BFA Financial Advisory as part of 
+a Cybersecurity Incident Response Plan project.
 
-BFA is a financial services company managing budgeting and financial 
-tracking software for 10,000 clients, with 120 staff on an internal 
-network. A consultant identified a critical gap in BFA's incident 
-response capability. This project closes that gap.
+## Tools
 
-## Deliverables
+**BFA_IR_Playbooks.html**
+Six attack-specific incident response playbooks covering Phishing, 
+Ransomware, Data Exfiltration, Insider Threat, Malware and DDoS. 
+Each playbook maps actions across Symantec EDLP and Microsoft 
+Defender EDR through all six NIST SP 800-61 response phases.
 
-| File | Description |
-|---|---|
-| BFA_Security_Policy_Symantec_Defender.docx | Complete policy configuration for Symantec EDLP and Microsoft Defender EDR |
-| BFA_Incident_Reporting_Chain.docx | Role-based reporting chain — P1 to P4 priority framework |
-| BFA_Section2_Corrected.docx | Problem statement, scope and methodology |
-| BFA_Section3.docx | Tool selection justification |
-| BFA_Section4.docx | IR playbooks, classification system and decision trees |
-| BFA_Section5.docx | File thresholds, reporting chain, policy document and budget |
+**BFA_IR_Toolkit.html**
+Three interactive tools in one — incident triage decision trees, 
+file size threshold reference, and role-based reporting chain. 
+Built for BFA's five-person IT team to use during a live incident.
 
-## Tools Covered
-- Symantec Endpoint Data Loss Prevention (EDLP)
-- Microsoft Defender for Endpoint (EDR)
-- Microsoft 365 Defender
+## How to use
 
-## Framework
-NIST SP 800-61 Rev 2 — Computer Security Incident Handling Guide
-
-## Regulatory Context
-- Australian Privacy Act 1988 (Cth)
-- OAIC Notifiable Data Breaches scheme
-
-## Team
-6 members | 10 weeks | 1,560 hours
+Download either file and open it in any web browser. 
+No installation or internet connection required.
